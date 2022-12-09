@@ -1,72 +1,67 @@
-import React from 'react';
-import { Link, withRouter } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link, useHistory } from 'react-router-dom';
 import Logo from './Logo.js';
 import * as duckAuth from '../duckAuth.js';
 import './styles/Login.css';
 
-class Login extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      username: '',
-      password: '',
-    };
+function Login({ handleLogin }) {
+  const [data, setData] = useState({
+    username: '',
+    password: '',
+  });
+  const history = useHistory()
 
-    this.handleChange = this.handleChange.bind(this);
-    this.handleSubmit = this.handleSubmit.bind(this);
-  }
-
-  handleChange(e) {
+  const handleChange = (e) => {
     const { name, value } = e.target;
-    this.setState({
+    setData({
+      ...data,
       [name]: value,
     });
   }
 
-  handleSubmit(e) {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    if (!this.state.username || !this.state.password) {
+    if (!data.username || !data.password) {
       return;
     }
-    duckAuth.authorize(this.state.username, this.state.password)
-      .then((data) => {
-        if (data.jwt) {
-          this.setState({ email: '', password: '' }, () => {
-            localStorage.setItem('jwt', data.jwt)
-            const userData = {
-              username: data.user.username,
-              email: data.user.email
-            }
-            this.props.handleLogin(userData);
-            this.props.history.push('/ducks');
-          });
+    duckAuth.authorize(data.username, data.password)
+      .then((res) => {
+        if (res.jwt) {
+          setData({ username: '', password: '' })
+          localStorage.setItem('jwt', res.jwt)
+          const userData = {
+            username: res.user.username,
+            email: res.user.email
+          }
+          handleLogin(userData);
+          history.push('/ducks');
         }
       })
       .catch(err => console.log(err));
   }
 
-  render() {
     return (
-      <div onSubmit={this.handleSubmit} className="login">
+      <div className="login">
         <Logo title={'CryptoDucks'}/>
         <p className="login__welcome">
           Это приложение содержит конфиденциальную информацию.
           Пожалуйста, войдите или зарегистрируйтесь, чтобы получить доступ к CryptoDucks.
         </p>
+
         <p className="login__error">
-          {this.state.message}
+          {data.message}
         </p>
-        <form className="login__form">
+        <form className="login__form" onSubmit={handleSubmit}>
           <label htmlFor="username">
             Логин:
           </label>
-          <input id="username" required name="username" type="text" autoComplete="login" value={this.state.username}
-                 onChange={this.handleChange}/>
+          <input id="username" required name="username" type="text" autoComplete="login" value={data.username}
+                 onChange={handleChange}/>
           <label htmlFor="password">
             Пароль:
           </label>
           <input id="password" required name="password" type="password" autoComplete="current-password"
-                 value={this.state.password} onChange={this.handleChange}/>
+                 value={data.password} onChange={handleChange}/>
           <div className="login__button-container">
             <button type="submit" className="login__link">Войти</button>
           </div>
@@ -78,7 +73,6 @@ class Login extends React.Component {
         </div>
       </div>
     );
-  }
 }
 
-export default withRouter(Login);
+export default Login;

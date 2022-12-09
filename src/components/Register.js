@@ -1,44 +1,41 @@
-import React from 'react';
-import { Link, withRouter } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link, useHistory } from 'react-router-dom';
 import Logo from './Logo.js';
 import * as duckAuth from '../duckAuth.js';
 import './styles/Register.css';
 
-class Register extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
+function Register() {
+  const [data, setData] = useState({
       username: '',
       email: '',
       password: '',
       confirmPassword: '',
       message: '',
-    };
+  });
+  const history = useHistory();
 
-    this.handleChange = this.handleChange.bind(this);
-    this.handleSubmit = this.handleSubmit.bind(this);
-  }
-
-  handleChange(e) {
+  const handleChange = (e) => {
     const { name, value } = e.target;
-    this.setState({
+    setData({
+      ...data,
       [name]: value,
     });
   }
 
-  handleSubmit(e) {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    if (this.state.password === this.state.confirmPassword) {
-      let { username, password, email } = this.state;
+    if (data.password === data.confirmPassword) {
+      let { username, password, email } = data;
       duckAuth.register(username, password, email).then((res) => {
         if (res.statusCode !== 400) {
-          this.setState({
+          setData({
+            ...data,
             message: '',
-          }, () => {
-            this.props.history.push('/login');
           });
+          history.push('/login')
         } else {
-          this.setState({
+          setData({
+            ...data,
             message: 'Что-то пошло не так!',
           });
         }
@@ -46,7 +43,6 @@ class Register extends React.Component {
     }
   }
 
-  render() {
     return (
       <div className="register">
         <Logo title={'CryptoDucks'}/>
@@ -54,29 +50,29 @@ class Register extends React.Component {
           Пожалуйста, зарегистрируйтесь.
         </p>
         <p className="register__error">
-          {this.state.message}
+          {data.message}
         </p>
-        <form onSubmit={this.handleSubmit} className="register__form">
+        <form onSubmit={handleSubmit} className="register__form">
           <label htmlFor="username">
             Логин:
           </label>
-          <input id="username" name="username" type="text" autoComplete="username" value={this.state.username}
-                 onChange={this.handleChange}/>
+          <input id="username" name="username" type="text" autoComplete="username" value={data.username}
+                 onChange={handleChange}/>
           <label htmlFor="email">
             Email:
           </label>
-          <input id="email" name="email" type="email" autoComplete="email" value={this.state.email}
-                 onChange={this.handleChange}/>
+          <input id="email" name="email" type="email" autoComplete="email" value={data.email}
+                 onChange={handleChange}/>
           <label htmlFor="password">
             Пароль:
           </label>
-          <input id="password" name="password" type="password" autoComplete="new-password" value={this.state.password}
-                 onChange={this.handleChange}/>
+          <input id="password" name="password" type="password" autoComplete="new-password" value={data.password}
+                 onChange={handleChange}/>
           <label htmlFor="confirmPassword">
             Подтвердите пароль:
           </label>
           <input id="confirmPassword" name="confirmPassword" type="password" autoComplete="new-password"
-                 value={this.state.confirmPassword} onChange={this.handleChange}/>
+                 value={data.confirmPassword} onChange={handleChange}/>
           <div className="register__button-container">
             <button type="submit" className="register__link">Зарегистрироваться</button>
           </div>
@@ -87,7 +83,6 @@ class Register extends React.Component {
         </div>
       </div>
     );
-  }
 }
 
-export default withRouter(Register);
+export default Register;
